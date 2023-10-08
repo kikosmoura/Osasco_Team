@@ -14,6 +14,7 @@ import os
 from scipy import stats
 import seaborn as sns
 import matplotlib.pyplot as plt
+import rasterio
 
 # Authenticate and initialize Earth Engine
 ee.Authenticate()
@@ -21,6 +22,23 @@ ee.Initialize()
 
 # Define the Earth Engine asset path
 arq = 'projects/ee-kikosmoura/assets/sp_city_heat'
+arq_modis = 'projects/ee-kikosmoura/assets/sp_city_heat_modis'
+
+
+
+with rasterio.open(arq) as src1, rasterio.open(arq_modis) as src2:
+    # Ler os dados raster em arrays numpy
+    data1 = src1.read(1) 
+    data2 = src2.read(1)  
+
+   
+    if data1.shape != data2.shape:
+        raise ValueError("As dimensões dos arquivos não coincidem.")
+
+   
+    diff = data1 - data2
+    print(diff)
+
 
 # Read a shapefile into a GeoDataFrame
 gdf = gpd.read_file('SIRGAS_SHP_distrito/SIRGAS_SHP_distrito.shp')
