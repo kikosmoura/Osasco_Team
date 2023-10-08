@@ -25,14 +25,6 @@ Map.addLayer(
     landSurfaceTemperature, landSurfaceTemperatureVis,
     'Land Surface Temperature');
 
-// Filter and clip the MODIS images to the region of interest (roi) and calculate the median.
-var sp_city_modis = dataset_modis
-  .filterBounds(roi)
-  .map(function(image){return image.clip(roi)})
-  .median();
-
-// Print the result to the console.
-print(sp_city_modis);
 
 // Define the region of interest (roi) as the geometry of a feature collection (table) and add it to the map.
 var roi = ee.FeatureCollection(table).geometry();
@@ -43,6 +35,17 @@ var sp_city = dataset
   .filterBounds(roi)
   .map(function(image){return image.clip(roi)})
   .median();
+
+// Filter and clip the MODIS images to the region of interest (roi) and calculate the median.
+var sp_city_modis = landSurfaceTemperature
+  .filterBounds(roi)
+  .map(function(image){return image.clip(roi)})
+  .median();
+
+// Print the result to the console.
+print(sp_city_modis);
+
+
 
 // Print the result to the console.
 print(sp_city);
@@ -57,9 +60,25 @@ var visualization = {
     'b10026']
 };
 
+
+var visualization_modis = {
+  bands: ['LST_Day_1km'],
+  min: -1.5,
+  max: 7.5,
+  palette: [
+    '040274', '040281', '0502a3', '0502b8', '0502ce', '0502e6',
+    '0602ff', '235cb1', '307ef3', '269db1', '30c8e2', '32d3ef',
+    '3be285', '3ff38f', '86e26f', '3ae237', 'b5e22e', 'd6e21f',
+    'fff705', 'ffd611', 'ffb613', 'ff8b13', 'ff6e08', 'ff500d',
+    'ff0000', 'de0101', 'c21301', 'a71001', '911003'
+  ],
+};
+
+
 // Set the map center and add the urban heat index layer for São Paulo to the map.
 Map.setCenter(-74.7, 40.6, 7);
 Map.addLayer(sp_city, visualization, 'City of São Paulo');
+Map.addLayer(sp_city_modis, visualization_modis, 'City of São Paulo');
 
 // Export the resulting image from the analysis to Google Drive.
 Export.image.toDrive({
@@ -73,7 +92,7 @@ Export.image.toDrive({
 // Export the MODIS image to Google Drive.
 Export.image.toDrive({
   image: sp_city_modis,
-  description: 'sp_city_heat',
+  description: 'sp_city_heat_modis',
   scale: 1000,
   maxPixels: 2e10,
   region: roi
